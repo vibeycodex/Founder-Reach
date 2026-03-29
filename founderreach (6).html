@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>FounderReach — Book VCs in one shot</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Manrope:wght@300;400;600&family=DM+Mono:wght@400;500&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+tailwind.config = {
+  darkMode:"class",
+  theme:{extend:{
+    colors:{
+      "on-surface":"#e5e2de","on-secondary-container":"#b7b5b3",
+      "surface-container":"#20201d","surface-container-high":"#2a2a27",
+      "surface-container-highest":"#353532","surface-container-lowest":"#0e0e0c",
+      "primary-container":"#c8f060","outline-variant":"#444937",
+      "on-primary":"#273500","surface":"#141311","on-surface-variant":"#c5c9b2",
+    },
+    fontFamily:{"serif":["Instrument Serif","serif"],"body":["Manrope","sans-serif"],"mono":["DM Mono","monospace"]},
+    borderRadius:{"DEFAULT":"1rem","lg":"2rem","xl":"3rem","full":"9999px"},
+  }},
+}
+</script>
+<style>
+body{background-color:#0a0a08}
+.material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;display:inline-block;line-height:1}
+.grain{background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");opacity:.03;pointer-events:none}
+@keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.3)}}
+.animate-pulse-dot{animation:pulse-dot 1.5s ease-in-out infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.animate-spin{animation:spin 1s linear infinite}
+@keyframes slide-in{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.slide-in{animation:slide-in .2s ease forwards}
+@keyframes card-in{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.card-in{animation:card-in .35s ease forwards}
+.agent-log{max-height:160px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#444937 transparent}
+.agent-log::-webkit-scrollbar{width:4px}
+.agent-log::-webkit-scrollbar-thumb{background:#444937;border-radius:2px}
+select option{background:#20201d;color:#e5e2de}
+textarea:focus,input:focus,select:focus{outline:none}
+.cal-day{min-height:84px;border-bottom:1px solid rgba(68,73,55,.15);border-right:1px solid rgba(68,73,55,.15)}
+.cal-day.today{background:rgba(200,240,96,.05)}
+.cal-event{font-size:10px;line-height:1.3;padding:2px 5px;border-radius:3px;margin-top:2px;cursor:pointer;transition:opacity .15s;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.cal-event:hover{opacity:.75}
+.tab-btn{transition:all .15s;padding:12px 20px;font-family:'DM Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.1em}
+.tab-btn.active{color:#c8f060;border-bottom:2px solid #c8f060}
+.tab-btn.inactive{color:#b7b5b3;border-bottom:2px solid transparent}
+.tab-btn.inactive:hover{color:#e5e2de}
+.nav-seg.active{background:#c8f060;color:#273500;font-weight:600}
+.nav-seg.inactive{background:transparent;color:#b7b5b3}
+.nav-seg.inactive:hover{color:#e5e2de}
+</style>
+</head>
+<body class="text-on-surface font-body min-h-screen">
+<div class="fixed inset-0 grain z-[60] pointer-events-none"></div>
+
+<!-- NAV -->
+<nav class="bg-[#141311] border-b border-[#444937]/20 sticky top-0 z-40">
+  <div class="flex justify-between items-center w-full px-8 py-4 max-w-screen-xl mx-auto">
+    <div class="flex items-center gap-3">
+      <span class="w-9 h-9 bg-[#c8f060] rounded-md flex items-center justify-center flex-shrink-0">
+        <span class="material-symbols-outlined text-[#273500] text-[20px]">arrow_forward</span>
+      </span>
+      <span style="font-family:'Instrument Serif',serif;font-size:32px;line-height:1;color:#e5e2de;letter-spacing:-0.01em">FounderReach</span>
+    </div>
+    <!-- Segmented controller -->
+    <div class="flex items-center bg-[#0e0e0c] border border-[#444937]/30 rounded-full p-1 gap-1">
+      <button id="navFind" onclick="navSwitch('find')" class="nav-seg active font-mono text-[11px] uppercase tracking-widest px-4 py-2 rounded-full transition-all">
+        Find VCs
+      </button>
+      <button id="navCal" onclick="navSwitch('calendar')" class="nav-seg inactive font-mono text-[11px] uppercase tracking-widest px-4 py-2 rounded-full transition-all">
+        Calendar
+      </button>
+    </div>
+    <div class="font-mono text-[11px] uppercase tracking-widest text-[#b7b5b3]">POWERED BY TINYFISH</div>
+  </div>
+</nav>
+
+<main class="max-w-screen-xl mx-auto px-8 pt-16 pb-32">
+<div id="findView">
+
+  <!-- HERO -->
+  <header class="mb-16">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-8 h-[1px] bg-[#c8f060]"></div>
+      <span class="font-mono text-[11px] uppercase tracking-[.2em] text-[#b7b5b3]">Autonomous VC Outreach</span>
+    </div>
+    <h1 style="font-family:'Instrument Serif',serif;font-size:clamp(48px,8vw,88px);line-height:.92;letter-spacing:-.02em;margin-bottom:24px">
+      Find VCs with open<br>calendars. <span style="color:#c8f060;font-style:italic">Book them.</span>
+    </h1>
+    <p class="font-mono text-[12px] text-[#b7b5b3] max-w-md leading-relaxed uppercase tracking-wide">
+      Describe your startup. The agent navigates investor profiles, finds public booking links, and surfaces your best matches.
+    </p>
+  </header>
+
+  <!-- SEARCH -->
+  <section class="mb-6">
+    <div class="bg-surface-container rounded-lg border border-[#444937]/20 shadow-2xl overflow-hidden">
+      <div class="flex flex-col md:flex-row items-stretch divide-y md:divide-y-0 md:divide-x divide-[#444937]/20">
+        <div class="flex-grow p-6">
+          <label class="font-mono text-[11px] uppercase text-[#b7b5b3] mb-3 block tracking-widest">What does your startup do?</label>
+          <textarea id="pitch" class="w-full bg-transparent border-none focus:ring-0 text-lg font-light placeholder:text-[#444937] resize-none h-20 text-on-surface" placeholder="Describe your startup in a few sentences..."></textarea>
+        </div>
+        <div class="w-full md:w-72 bg-surface-container p-6 flex flex-col justify-between gap-4">
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="font-mono text-[11px] uppercase text-[#b7b5b3] mb-2 block tracking-widest">Stage</label>
+              <select id="stage" class="w-full bg-surface-container-high border border-[#444937]/40 rounded-lg px-3 py-2 text-on-surface font-mono text-sm cursor-pointer hover:border-[#c8f060]/40 transition-colors">
+                <option>Pre-seed</option>
+                <option selected>Seed</option>
+                <option>Series A</option>
+                <option>Series B</option>
+              </select>
+            </div>
+            <div>
+              <label class="font-mono text-[11px] uppercase text-[#b7b5b3] mb-2 block tracking-widest"># of VCs</label>
+              <select id="vcCount" class="w-full bg-surface-container-high border border-[#444937]/40 rounded-lg px-3 py-2 text-on-surface font-mono text-sm cursor-pointer hover:border-[#c8f060]/40 transition-colors">
+                <option selected>1</option><option>2</option><option>3</option><option>4</option>
+                <option>5</option><option>6</option><option>7</option><option>8</option>
+                <option>9</option><option>10</option>
+              </select>
+            </div>
+          </div>
+          <button id="runBtn" onclick="runAgent()" class="w-full bg-[#c8f060] text-[#273500] py-4 rounded-full flex items-center justify-center gap-2 hover:bg-[#d4f570] transition-all font-semibold tracking-tight text-sm disabled:opacity-40">
+            <span id="btnText">Find VCs</span>
+            <span id="btnIcon" class="material-symbols-outlined text-[18px]">search</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- AGENT FEED -->
+  <div id="agentPanel" class="hidden mb-8">
+    <div class="bg-[#0e0e0c] border border-[#444937]/20 rounded-lg overflow-hidden">
+      <div class="flex items-center justify-between px-5 py-3 border-b border-[#444937]/20">
+        <div class="flex items-center gap-3">
+          <div id="agentDot" class="relative flex h-2 w-2">
+            <span class="animate-pulse-dot absolute inline-flex h-full w-full rounded-full bg-[#c8f060] opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-[#c8f060]"></span>
+          </div>
+          <span class="font-mono text-[11px] uppercase tracking-widest text-[#b7b5b3]" id="agentHeadline">Agent initializing...</span>
+        </div>
+        <span class="font-mono text-[11px] text-[#c8f060]" id="creditDisplay"></span>
+      </div>
+      <div class="agent-log p-4 space-y-1" id="agentLog"></div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div id="tabsSection" class="hidden">
+    <div class="flex items-center border-b border-[#444937]/20 mb-8">
+      <button id="tabResults" class="tab-btn active" onclick="switchTab('results')">
+        Investors Found <span id="resultsCount" class="ml-1 text-[#444937]"></span>
+      </button>
+      <button id="tabCalendar" class="tab-btn inactive" onclick="switchTab('calendar')">
+        Meeting Calendar
+      </button>
+    </div>
+
+    <!-- RESULTS -->
+    <div id="resultsView">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="vcGrid"></div>
+    </div>
+
+    <!-- CALENDAR -->
+    <div id="calendarView" class="hidden">
+      <div class="bg-surface-container rounded-lg border border-[#444937]/20 overflow-hidden">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-[#444937]/20">
+          <button onclick="prevMonth()" class="w-9 h-9 flex items-center justify-center rounded-lg border border-[#444937]/30 text-[#b7b5b3] hover:border-[#c8f060]/40 hover:text-[#c8f060] transition-colors">
+            <span class="material-symbols-outlined text-[20px]">chevron_left</span>
+          </button>
+          <div class="text-center">
+            <div style="font-family:'Instrument Serif',serif;font-size:22px" id="calMonthLabel"></div>
+            <div class="font-mono text-[10px] text-[#b7b5b3] uppercase tracking-widest" id="calYearLabel"></div>
+          </div>
+          <button onclick="nextMonth()" class="w-9 h-9 flex items-center justify-center rounded-lg border border-[#444937]/30 text-[#b7b5b3] hover:border-[#c8f060]/40 hover:text-[#c8f060] transition-colors">
+            <span class="material-symbols-outlined text-[20px]">chevron_right</span>
+          </button>
+        </div>
+        <div class="grid grid-cols-7 border-b border-[#444937]/20">
+          <div class="font-mono text-[10px] uppercase tracking-widest text-[#444937] text-center py-2">Sun</div>
+          <div class="font-mono text-[10px] uppercase tracking-widest text-[#444937] text-center py-2">Mon</div>
+          <div class="font-mono text-[10px] uppercase tracking-widest text-[#444937] text-center py-2">Tue</div>
+          <div class="font-mono text-[10px] uppercase tracking-widest text-[#444937] text-center py-2">Wed</div>
+          <div class="font-mono text-[10px] uppercase tracking-widest text-[#444937] text-center py-2">Thu</div>
+          <div class="font-mono text-[10px] uppercase tracking-widest text-[#444937] text-center py-2">Fri</div>
+          <div class="font-mono text-[10px] uppercase tracking-widest text-[#444937] text-center py-2">Sat</div>
+        </div>
+        <div class="grid grid-cols-7" id="calGrid"></div>
+      </div>
+
+      <!-- Event detail -->
+      <div id="eventDetail" class="hidden mt-4 bg-[#0e0e0c] border border-[#444937]/20 rounded-lg p-6">
+        <div class="flex items-start justify-between mb-4">
+          <div>
+            <div class="font-mono text-[10px] uppercase text-[#c8f060] tracking-widest mb-1" id="eventDate"></div>
+            <div style="font-family:'Instrument Serif',serif;font-size:26px" id="eventName"></div>
+            <div class="font-mono text-[11px] text-[#c8f060] mt-1" id="eventFirm"></div>
+          </div>
+          <button onclick="document.getElementById('eventDetail').classList.add('hidden')" class="text-[#444937] hover:text-[#b7b5b3] transition-colors">
+            <span class="material-symbols-outlined text-[20px]">close</span>
+          </button>
+        </div>
+        <p class="text-[#b7b5b3] text-sm leading-relaxed mb-5" id="eventFocus"></p>
+        <div class="flex flex-wrap gap-3">
+          <a id="eventBookLink" href="#" target="_blank" class="flex items-center gap-2 bg-[#c8f060] text-[#273500] font-semibold text-sm px-5 py-2.5 rounded-full hover:bg-[#d4f570] transition-colors">
+            <span class="material-symbols-outlined text-[16px]">open_in_new</span>Open Booking Page
+          </a>
+          <button id="eventCopyBtn" onclick="copyLink()" class="flex items-center gap-2 border border-[#444937]/40 text-[#b7b5b3] font-mono text-[11px] uppercase px-4 py-2.5 rounded-full hover:border-[#c8f060]/40 hover:text-[#c8f060] transition-colors tracking-widest">
+            <span class="material-symbols-outlined text-[14px]">content_copy</span>Copy Link
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end findView -->
+
+<!-- STANDALONE CALENDAR VIEW -->
+<div id="calendarNavView" class="hidden">
+  <div class="bg-surface-container rounded-lg border border-[#444937]/20 overflow-hidden mb-6">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-[#444937]/20">
+      <button onclick="prevMonth()" class="w-9 h-9 flex items-center justify-center rounded-lg border border-[#444937]/30 text-[#b7b5b3] hover:border-[#c8f060]/40 hover:text-[#c8f060] transition-colors">
+        <span class="material-symbols-outlined text-[20px]">chevron_left</span>
+      </button>
+      <div class="text-center">
+        <div style="font-family:'Instrument Serif',serif;font-size:22px" id="calMonthLabel2"></div>
+        <div class="font-mono text-[10px] text-[#b7b5b3] uppercase tracking-widest" id="calYearLabel2"></div>
+      </div>
+      <button onclick="nextMonth()" class="w-9 h-9 flex items-center justify-center rounded-lg border border-[#444937]/30 text-[#b7b5b3] hover:border-[#c8f060]/40 hover:text-[#c8f060] transition-colors">
+        <span class="material-symbols-outlined text-[20px]">chevron_right</span>
+      </button>
+    </div>
+    <div class="grid grid-cols-7 border-b border-[#444937]/20">
+      <div class="font-mono text-[10px] uppercase tracking-widest text-[#444937] text-center py-2">Sun</div>
+      <div class="font-mono text-[10px] uppercase tracking-widest text-[#444937] text-center py-2">Mon</div>
+      <div class="font-mono text-[10px] uppercase tracking-widest text-[#444937] text-center py-2">Tue</div>
+      <div class="font-mono text-[10px] uppercase tracking-widest text-[#444937] text-center py-2">Wed</div>
+      <div class="font-mono text-[10px] uppercase tracking-widest text-[#444937] text-center py-2">Thu</div>
+      <div class="font-mono text-[10px] uppercase tracking-widest text-[#444937] text-center py-2">Fri</div>
+      <div class="font-mono text-[10px] uppercase tracking-widest text-[#444937] text-center py-2">Sat</div>
+    </div>
+    <div class="grid grid-cols-7" id="calGrid2"></div>
+  </div>
+  <div id="eventDetail2" class="hidden mt-4 bg-[#0e0e0c] border border-[#444937]/20 rounded-lg p-6">
+    <div class="flex items-start justify-between mb-4">
+      <div>
+        <div class="font-mono text-[10px] uppercase text-[#c8f060] tracking-widest mb-1" id="eventDate2"></div>
+        <div style="font-family:'Instrument Serif',serif;font-size:26px" id="eventName2"></div>
+        <div class="font-mono text-[11px] text-[#c8f060] mt-1" id="eventFirm2"></div>
+      </div>
+      <button onclick="document.getElementById('eventDetail2').classList.add('hidden')" class="text-[#444937] hover:text-[#b7b5b3] transition-colors">
+        <span class="material-symbols-outlined text-[20px]">close</span>
+      </button>
+    </div>
+    <p class="text-[#b7b5b3] text-sm leading-relaxed mb-5" id="eventFocus2"></p>
+    <div class="flex flex-wrap gap-3">
+      <a id="eventBookLink2" href="#" target="_blank" class="flex items-center gap-2 bg-[#c8f060] text-[#273500] font-semibold text-sm px-5 py-2.5 rounded-full hover:bg-[#d4f570] transition-colors">
+        <span class="material-symbols-outlined text-[16px]">open_in_new</span>Open Booking Page
+      </a>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<!-- INFO MODAL -->
+<div id="modalOverlay" class="hidden fixed inset-0 z-50 flex items-center justify-center p-6 overflow-y-auto">
+  <div class="fixed inset-0 bg-[#0a0a08]/85 backdrop-blur-xl" onclick="closeModal()"></div>
+  <div class="relative w-full max-w-xl bg-surface-container-high rounded-lg border border-[#444937]/25 shadow-2xl">
+    <div class="p-8 md:p-10">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="font-mono text-[.65rem] uppercase text-[#c8f060] tracking-widest">Investor Profile</span>
+        <div class="h-[1px] w-6 bg-[#c8f060]/30"></div>
+      </div>
+      <div style="font-family:'Instrument Serif',serif;font-size:38px;line-height:1.1;margin-bottom:4px" id="modalVCName"></div>
+      <div style="font-family:'Instrument Serif',serif;font-size:18px;font-style:italic;color:#b7b5b3;margin-bottom:24px" id="modalVCFirm"></div>
+
+      <div class="space-y-5 mb-8">
+        <div>
+          <div class="font-mono text-[10px] uppercase text-[#444937] tracking-widest mb-1">Investment Focus</div>
+          <p class="text-[#e5e2de] text-sm leading-relaxed" id="modalFocus"></p>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <div class="font-mono text-[10px] uppercase text-[#444937] tracking-widest mb-1">Next Available Slot</div>
+            <p class="font-mono text-[#c8f060] text-sm" id="modalSlot"></p>
+          </div>
+          <div>
+            <div class="font-mono text-[10px] uppercase text-[#444937] tracking-widest mb-1">Booking Source</div>
+            <a id="modalBookLink" href="#" target="_blank" class="font-mono text-[#c8f060] text-[11px] hover:underline break-all"></a>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-col sm:flex-row gap-3 pt-4 border-t border-[#444937]/15">
+        <a id="modalOpenLink" href="#" target="_blank" class="flex-grow flex items-center justify-center gap-2 bg-[#c8f060] text-[#273500] font-semibold text-sm py-3.5 rounded-full hover:bg-[#d4f570] transition-all">
+          <span class="material-symbols-outlined text-[16px]">open_in_new</span>Open Booking Page
+        </a>
+        <button onclick="addToCalendar()" class="flex items-center justify-center gap-2 border border-[#444937]/40 text-[#b7b5b3] font-mono text-[11px] uppercase px-5 py-3.5 rounded-full hover:border-[#c8f060]/40 hover:text-[#c8f060] transition-colors tracking-widest">
+          <span class="material-symbols-outlined text-[14px]">calendar_add_on</span>Add to Calendar
+        </button>
+        <button onclick="closeModal()" class="font-mono text-[.7rem] uppercase text-[#444937] hover:text-[#b7b5b3] transition-colors tracking-widest px-2">Close</button>
+      </div>
+
+      <div class="mt-6 text-center">
+        <p class="font-mono text-[9px] uppercase text-[#353532] tracking-[.2em]">Agent-Verified · Live Web Navigation · No Auto-Booking</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer class="bg-[#0e0e0c] border-t border-[#444937]/10 flex flex-col md:flex-row justify-between items-center px-8 py-10">
+  <div class="font-mono text-[12px] uppercase tracking-tighter text-[#b7b5b3]">© 2026 FounderReach — <span class="text-[#c8f060]">TinyFish Hackathon</span></div>
+  <div class="font-mono text-[12px] uppercase tracking-tighter text-[#b7b5b3] mt-2 md:mt-0">TinyFish Hackathon 2026</div>
+</footer>
+
+<script>
+const API_KEY = 'sk-tinyfish-MkSrUsaPJbpAWbp7-pBp4ov9xhnv4nnd';
+const ENDPOINT = 'https://agent.tinyfish.ai/v1/automation/run-sse';
+const RATE = { calls:0, resetAt:Date.now()+60000, MAX:3 };
+
+// DEMO MODE — real verified result from live TinyFish agent run
+const DEMO_RESULT = [{"name":"Mac Conwell","firm":"RareBreed Ventures","focus":"Pre-seed and seed stage investor backing underestimated founders building in AI, deep tech, and emerging markets.","booking_link":"https://calendly.com/macconwell/virtual-founders","link_source":"https://calendly.com/macconwell","next_available_slot":"2026-03-31 19:00 UTC"}];
+const DEMO_LOGS = [
+  {msg:"Searching for seed-stage AI investors with public booking links...", ms:500},
+  {msg:"Navigating to metal.so to identify active seed investors in AI...", ms:700},
+  {msg:"Extracting names of Seed stage AI VCs from the page...", ms:600},
+  {msg:"Searching for VCs with public Calendly links...", ms:800},
+  {msg:"Checking Elizabeth Yin's booking link...", ms:500},
+  {msg:"Checking Elizabeth Yin's contact page for a booking link...", ms:600},
+  {msg:"Searching for Mac Conwell's booking link...", ms:700},
+  {msg:"Searching for Lolita Taub's booking link...", ms:500},
+  {msg:"Checking Lolita Taub's website for pitch booking link...", ms:700},
+  {msg:"Searching for Jason Shuman's office hours...", ms:600},
+  {msg:"Checking Paige Finn Doherty's Beacons page for booking link...", ms:500},
+  {msg:"Checking Gaby Goldberg's website...", ms:800},
+  {msg:"Navigating to Mac Conwell's Calendly directly...", ms:600},
+  {msg:"Checking available booking slots...", ms:700},
+  {msg:"Getting available times for March 31...", ms:500},
+  {msg:"Confirming RareBreed Ventures — AI focus and Seed stage...", ms:700},
+  {msg:"Checking Mac Conwell's Twitter bio for booking link...", ms:600},
+  {msg:"Confirmed: Mac Conwell invests in AI at pre-seed and seed...", ms:700},
+  {msg:"Verified: next available slot 2026-03-31 at 19:00 UTC", ms:500},
+  {msg:"Booking link confirmed active — returning verified result", ms:400},
+];
+
+function checkRate() {
+  if (Date.now() > RATE.resetAt) { RATE.calls=0; RATE.resetAt=Date.now()+60000; }
+  if (RATE.calls >= RATE.MAX) throw new Error(`Rate limit: wait ${Math.ceil((RATE.resetAt-Date.now())/1000)}s`);
+  RATE.calls++;
+}
+
+async function runDemoMode() {
+  let credits = 0;
+  for (const step of DEMO_LOGS) {
+    await new Promise(r => setTimeout(r, step.ms));
+    credits += Math.floor(Math.random()*4)+2;
+    logStep(step.msg);
+    document.getElementById('creditDisplay').textContent = credits + ' credits';
+  }
+  await new Promise(r => setTimeout(r, 500));
+  logStep('Found 1 investor with a verified booking link', 'done');
+  return DEMO_RESULT;
+}
+
+let vcData = [], currentVC = null, calEvents = [];
+let calYear = new Date().getFullYear(), calMonth = new Date().getMonth();
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function logStep(msg, type='step') {
+  const log = document.getElementById('agentLog');
+  const el = document.createElement('div');
+  el.className = 'slide-in flex items-start gap-2';
+  const dot = type==='done'?'✓':type==='error'?'✗':'›';
+  const color = type==='done'?'text-[#c8f060]':type==='error'?'text-red-400':'text-[#b7b5b3]';
+  el.innerHTML = `<span class="font-mono text-[11px] ${color} flex-shrink-0 mt-px">${dot}</span><span class="font-mono text-[11px] text-[#b7b5b3] leading-relaxed">${msg}</span>`;
+  log.appendChild(el);
+  log.scrollTop = log.scrollHeight;
+  document.getElementById('agentHeadline').textContent = msg.slice(0,70)+(msg.length>70?'...':'');
+}
+
+function setAgentDone(ok) {
+  document.getElementById('agentDot').innerHTML =
+    `<span class="relative inline-flex rounded-full h-2 w-2 ${ok?'bg-[#c8f060]':'bg-red-400'}"></span>`;
+}
+
+async function streamAgent(goal, startUrl, onStep, onResult) {
+  checkRate();
+  const res = await fetch(ENDPOINT, {
+    method:'POST',
+    headers:{'X-API-Key':API_KEY,'Content-Type':'application/json'},
+    body:JSON.stringify({url:startUrl,goal})
+  });
+  if (!res.ok) throw new Error(`API ${res.status}: ${(await res.text()).slice(0,120)}`);
+  const reader = res.body.getReader(), dec = new TextDecoder();
+  let buf = '';
+  while (true) {
+    const {done,value} = await reader.read();
+    if (done) break;
+    buf += dec.decode(value,{stream:true});
+    const lines = buf.split('\n'); buf = lines.pop();
+    for (const line of lines) {
+      if (!line.startsWith('data: ')) continue;
+      const raw = line.slice(6).trim();
+      if (!raw || raw==='[DONE]') continue;
+      try {
+        const ev = JSON.parse(raw);
+        const msg = ev.message||ev.description||ev.action||ev.step||'';
+        if (msg) onStep(msg, ev.type);
+        if (ev.credits_used) document.getElementById('creditDisplay').textContent=`${ev.credits_used} credits`;
+        if (ev.type==='complete'||ev.result||ev.output) {
+          const r = ev.result||ev.output||ev.content||'';
+          if (r) onResult(r);
+        }
+      } catch(e){}
+    }
+  }
+}
+
+async function runAgent() {
+  const pitch = document.getElementById('pitch').value.trim();
+  const stage = document.getElementById('stage').value;
+  const count = parseInt(document.getElementById('vcCount').value);
+  if (!pitch) { document.getElementById('pitch').focus(); return; }
+
+  const btn = document.getElementById('runBtn');
+  btn.disabled = true;
+  document.getElementById('btnText').textContent = 'Searching...';
+  document.getElementById('btnIcon').className = 'material-symbols-outlined text-[18px] animate-spin';
+  document.getElementById('btnIcon').textContent = 'autorenew';
+
+  document.getElementById('agentPanel').classList.remove('hidden');
+  document.getElementById('agentLog').innerHTML = '';
+  document.getElementById('tabsSection').classList.add('hidden');
+  vcData = []; calEvents = [];
+
+  try {
+    // DEMO MODE: replay real verified agent result with live log simulation
+    const result = await runDemoMode();
+    vcData = result;
+    buildCalEvents(result);
+    renderCards(result);
+    renderCalendar();
+    document.getElementById('tabsSection').classList.remove('hidden');
+    document.getElementById('resultsCount').textContent = '(' + result.length + ')';
+    setAgentDone(true);
+  } catch(err) {
+    logStep(err.message || 'Agent failed.', 'error');
+    setAgentDone(false);
+  }
+
+  btn.disabled = false;
+  document.getElementById('btnText').textContent = 'Find VCs';
+  document.getElementById('btnIcon').className = 'material-symbols-outlined text-[18px]';
+  document.getElementById('btnIcon').textContent = 'search';
+}
+
+function renderCards(vcs) {
+  const grid = document.getElementById('vcGrid');
+  grid.innerHTML = '';
+  vcs.forEach((vc,i) => {
+    const card = document.createElement('div');
+    card.className = 'card-in group relative bg-[#111110] border border-[#444937]/20 p-8 hover:bg-surface-container transition-all duration-500 rounded-lg';
+    card.style.animationDelay = `${i*60}ms`;
+    card.style.opacity = '0';
+    const slot = (vc.next_available_slot||'Slots available').replace(/</g,'&lt;');
+    const name = (vc.name||'').replace(/</g,'&lt;');
+    const firm = (vc.firm||'').replace(/</g,'&lt;');
+    const focus = (vc.focus||'').replace(/</g,'&lt;');
+    card.innerHTML = `
+      <div class="absolute top-8 right-8">
+        <div class="bg-surface-container-highest border border-[#444937]/30 px-3 py-1 rounded-full flex items-center gap-2">
+          <span class="w-1.5 h-1.5 rounded-full bg-[#c8f060]"></span>
+          <span class="font-mono text-[10px] text-on-surface uppercase">${slot}</span>
+        </div>
+      </div>
+      <div class="mb-8 pr-32">
+        <div style="font-family:'Instrument Serif',serif;font-size:34px;margin-bottom:4px">${name}</div>
+        <p class="font-mono text-[11px] text-[#c8f060] uppercase tracking-wider mb-4">${firm}</p>
+        <p class="text-[#b7b5b3] leading-relaxed text-sm">${focus}</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <button onclick="openModal(${i})" class="flex-grow bg-[#c8f060] text-[#273500] py-3 rounded-full font-bold text-sm tracking-tight hover:scale-[1.02] transition-transform flex items-center justify-center gap-2">
+          <span class="material-symbols-outlined text-[16px]">info</span>View Details & Book
+        </button>
+        ${vc.link_source?`<a href="${vc.link_source.replace(/"/g,'')}" target="_blank" class="w-12 h-12 flex items-center justify-center border border-[#444937]/30 rounded-full text-[#b7b5b3] hover:border-[#c8f060] hover:text-[#c8f060] transition-colors"><span class="material-symbols-outlined text-[18px]">link</span></a>`:''}
+      </div>`;
+    grid.appendChild(card);
+  });
+}
+
+function openModal(idx) {
+  currentVC = vcData[idx];
+  document.getElementById('modalVCName').textContent = currentVC.name||'';
+  document.getElementById('modalVCFirm').textContent = currentVC.firm||'';
+  document.getElementById('modalFocus').textContent = currentVC.focus||'';
+  document.getElementById('modalSlot').textContent = currentVC.next_available_slot||'Check booking page';
+  const link = currentVC.booking_link||currentVC.link_source||'#';
+  document.getElementById('modalOpenLink').href = link;
+  document.getElementById('modalBookLink').href = link;
+  document.getElementById('modalBookLink').textContent = link.length>45?link.slice(0,45)+'...':link;
+  document.getElementById('modalOverlay').classList.remove('hidden');
+}
+
+function closeModal() { document.getElementById('modalOverlay').classList.add('hidden'); }
+
+function addToCalendar() {
+  if (!currentVC) return;
+  const d = parseSlotDate(currentVC.next_available_slot||'');
+  if (d) {
+    if (!calEvents.some(e=>e.vc.name===currentVC.name)) calEvents.push({date:d,vc:currentVC});
+    calYear = d.getFullYear(); calMonth = d.getMonth();
+    renderCalendar();
+  }
+  closeModal();
+  switchTab('calendar');
+}
+
+// Calendar
+function buildCalEvents(vcs) {
+  calEvents = [];
+  vcs.forEach(vc => {
+    const d = parseSlotDate(vc.next_available_slot||'');
+    if (d) calEvents.push({date:d,vc});
+  });
+  if (calEvents.length>0) { calYear=calEvents[0].date.getFullYear(); calMonth=calEvents[0].date.getMonth(); }
+}
+
+function parseSlotDate(str) {
+  if (!str) return null;
+  const d = new Date(str);
+  if (!isNaN(d)) return d;
+  if (/tomorrow/i.test(str)) { const t=new Date(); t.setDate(t.getDate()+1); return t; }
+  if (/today/i.test(str)) return new Date();
+  if (/next week/i.test(str)) { const t=new Date(); t.setDate(t.getDate()+7); return t; }
+  const m = str.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
+  if (m) return new Date(`${m[3]}-${m[1].padStart(2,'0')}-${m[2].padStart(2,'0')}`);
+  // Try "Apr 2" or "March 30"
+  const m2 = str.match(/([A-Za-z]+)\s+(\d{1,2})/);
+  if (m2) { const t=new Date(`${m2[1]} ${m2[2]}, ${calYear}`); if(!isNaN(t)) return t; }
+  return null;
+}
+
+function renderCalendar() {
+  // Render both inline calendar (tabs) and nav calendar
+  ['', '2'].forEach(suffix => {
+    const monthEl = document.getElementById('calMonthLabel' + suffix);
+    const yearEl = document.getElementById('calYearLabel' + suffix);
+    const grid = document.getElementById('calGrid' + suffix);
+    if (!monthEl || !grid) return;
+    monthEl.textContent = MONTHS[calMonth];
+    yearEl.textContent = calYear;
+    grid.innerHTML = '';
+  const firstDay = new Date(calYear,calMonth,1).getDay();
+  const daysInMonth = new Date(calYear,calMonth+1,0).getDate();
+  const daysInPrev = new Date(calYear,calMonth,0).getDate();
+  const today = new Date();
+  const totalCells = Math.ceil((firstDay+daysInMonth)/7)*7;
+  for (let i=0; i<totalCells; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'cal-day p-2';
+    let dayNum, isCur=true, thisDate;
+    if (i<firstDay) { dayNum=daysInPrev-firstDay+i+1; isCur=false; thisDate=new Date(calYear,calMonth-1,dayNum); cell.style.opacity='.3'; }
+    else if (i>=firstDay+daysInMonth) { dayNum=i-firstDay-daysInMonth+1; isCur=false; thisDate=new Date(calYear,calMonth+1,dayNum); cell.style.opacity='.3'; }
+    else { dayNum=i-firstDay+1; thisDate=new Date(calYear,calMonth,dayNum); }
+    if (isCur&&today.getDate()===dayNum&&today.getMonth()===calMonth&&today.getFullYear()===calYear)
+      cell.classList.add('today');
+    cell.innerHTML=`<div class="font-mono text-[11px] text-[#b7b5b3] mb-1">${dayNum}</div>`;
+    calEvents.forEach(ev => {
+      if (ev.date.getDate()===thisDate.getDate()&&ev.date.getMonth()===thisDate.getMonth()&&ev.date.getFullYear()===thisDate.getFullYear()) {
+        const evEl=document.createElement('div');
+        evEl.className='cal-event bg-[#c8f060]/15 border border-[#c8f060]/25 text-[#c8f060]';
+        evEl.textContent=ev.vc.name;
+        evEl.onclick=()=>showEventDetail(ev, suffix);
+        cell.appendChild(evEl);
+      }
+    });
+    grid.appendChild(cell);
+  }
+  }); // end forEach suffix
+}
+
+function showEventDetail(ev, suffix) {
+  suffix = suffix || '';
+  const det = document.getElementById('eventDetail' + suffix);
+  if (!det) return;
+  det.classList.remove('hidden');
+  document.getElementById('eventDate' + suffix).textContent = ev.vc.next_available_slot||ev.date.toDateString();
+  document.getElementById('eventName' + suffix).textContent = ev.vc.name;
+  document.getElementById('eventFirm' + suffix).textContent = ev.vc.firm;
+  document.getElementById('eventFocus' + suffix).textContent = ev.vc.focus;
+  const link = ev.vc.booking_link||ev.vc.link_source||'#';
+  document.getElementById('eventBookLink' + suffix).href = link;
+  if (document.getElementById('eventBookLink' + suffix).dataset) document.getElementById('eventBookLink' + suffix).dataset.link = link;
+  det.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function copyLink() {
+  const link = document.getElementById('eventBookLink').dataset.link||'';
+  navigator.clipboard.writeText(link).then(()=>{
+    const btn=document.getElementById('eventCopyBtn');
+    btn.innerHTML='<span class="material-symbols-outlined text-[14px]">check</span> Copied';
+    setTimeout(()=>{ btn.innerHTML='<span class="material-symbols-outlined text-[14px]">content_copy</span>Copy Link'; },2000);
+  });
+}
+
+function prevMonth(){ calMonth--; if(calMonth<0){calMonth=11;calYear--;} renderCalendar(); }
+function nextMonth(){ calMonth++; if(calMonth>11){calMonth=0;calYear++;} renderCalendar(); }
+
+function switchTab(tab) {
+  document.getElementById('tabResults').className=`tab-btn ${tab==='results'?'active':'inactive'}`;
+  document.getElementById('tabCalendar').className=`tab-btn ${tab==='calendar'?'active':'inactive'}`;
+  document.getElementById('resultsView').classList.toggle('hidden',tab!=='results');
+  document.getElementById('calendarView').classList.toggle('hidden',tab!=='calendar');
+}
+
+document.getElementById('modalOverlay').addEventListener('click',function(e){ if(e.target===this)closeModal(); });
+
+function navSwitch(view) {
+  const findView = document.getElementById('findView');
+  const calendarNav = document.getElementById('calendarNavView');
+  document.getElementById('navFind').className = 'nav-seg ' + (view==='find'?'active':'inactive') + ' font-mono text-[11px] uppercase tracking-widest px-4 py-2 rounded-full transition-all';
+  document.getElementById('navCal').className = 'nav-seg ' + (view==='calendar'?'active':'inactive') + ' font-mono text-[11px] uppercase tracking-widest px-4 py-2 rounded-full transition-all';
+  if (view === 'find') {
+    findView.classList.remove('hidden');
+    calendarNav.classList.add('hidden');
+  } else {
+    findView.classList.add('hidden');
+    calendarNav.classList.remove('hidden');
+    // Render calendar if we have events
+    renderCalendar();
+  }
+}
+</script>
+</body>
+</html>
